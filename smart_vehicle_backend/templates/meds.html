@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% set header = "Med Reminders" %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div class="p-5 rounded-2xl bg-[#111827] border border-[#1F2937]">
+    <div class="font-semibold">Your Reminders</div>
+    <div class="mt-3 space-y-2" id="list"></div>
+  </div>
+
+  <div class="p-5 rounded-2xl bg-[#111827] border border-[#1F2937]">
+    <div class="font-semibold">Add Reminder</div>
+    <div class="mt-3 space-y-3">
+      <input id="name" placeholder="Medicine name" class="w-full px-3 py-2 rounded-xl bg-black/20 border border-[#1F2937]"/>
+      <input id="dosage" placeholder="Dosage (e.g., 1 tablet)" class="w-full px-3 py-2 rounded-xl bg-black/20 border border-[#1F2937]"/>
+      <input id="time" placeholder="HH:MM" value="08:00" class="w-full px-3 py-2 rounded-xl bg-black/20 border border-[#1F2937]"/>
+      <button id="add" class="w-full px-4 py-2 rounded-xl bg-[#7C3AED] hover:opacity-90">Add</button>
+    </div>
+
+    <div class="mt-5 p-4 rounded-xl bg-white/5 border border-[#1F2937]">
+      <div class="font-semibold">Next Reminder</div>
+      <div id="next" class="text-sm text-slate-300 mt-2">—</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const list = document.getElementById("list");
+  const next = document.getElementById("next");
+
+  function card(m){
+    return `
+      <div class="p-4 rounded-xl bg-white/5 border border-[#1F2937] flex items-center justify-between">
+        <div>
+          <div class="font-semibold">${m.name}</div>
+          <div class="text-xs text-slate-400">${m.dosage || ""} • ${m.time_of_day} • ${m.enabled ? "enabled" : "disabled"}</div>
+        </div>
+        <button class="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10" onclick="del(${m.id})">Delete</button>
+      </div>
+    `;
+  }
+
+  async function load(){
+    const r = await fetch("/api/meds", {cache:"no-store"});
+    const j = await r.json();
+    list.innerHTML = j.map(card).join("") || `<div class="text-sm text-slate-400">No reminders.</div>`;
+  }
+
+  async function loadNext(){
+    const r = await fetch("/api/meds/next", {cache:"no-store"});
+    const j = await r.json();
+    if (!j.has){
+      next.textContent = "No active reminders.";
+      return;
+    }
+    next.textContent = `${j.name} (${j.dosage || "dose"}) at ${j.time_of_day} — next: ${new Date(j.due_at).toLocaleString()}`;
+  }
+
+  async function del(id){
+    if(!confirm("Delete this reminder?")) return;
+    await fetch(`/api/meds/${id}`, {method:"DELETE"});
+    load(); loadNext();
+  }
+
+  document.getElementById("add").onclick = async () => {
+    const payload = {
+      name: document.getElementById("name").value || "Medicine",
+      dosage: document.getElementById("dosage").value || "",
+      time_of_day: document.getElementById("time").value || "08:00",
+      enabled: true
+    };
+    await fetch("/api/meds", {method:"POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload)});
+    document.getElementById("name").value = "";
+    document.getElementById("dosage").value = "";
+    load(); loadNext();
+  };
+
+  load();
+  loadNext();
+  setInterval(loadNext, 5000);
+</script>
+{% endblock %}

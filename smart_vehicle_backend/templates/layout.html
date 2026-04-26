@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{ title if title else "SafeFall" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+
+<body class="bg-[#0B1020] text-slate-100">
+  <div class="min-h-screen flex">
+
+    <aside class="w-64 border-r border-[#1F2937] bg-black/20 px-4 py-5">
+      <div class="text-xl font-semibold tracking-tight">
+        <span class="text-[#7C3AED]">Safe</span><span class="text-[#22C55E]">Fall</span>
+      </div>
+      <div class="text-xs text-slate-400 mt-1">Fall detection & monitoring</div>
+
+      <nav class="mt-6 space-y-1">
+        <a class="block px-3 py-2 rounded-lg hover:bg-white/5" href="/">Dashboard</a>
+        <a class="block px-3 py-2 rounded-lg hover:bg-white/5" href="/live">Live Monitoring</a>
+        <a class="block px-3 py-2 rounded-lg hover:bg-white/5" href="/falls">Fall Events</a>
+        <a class="block px-3 py-2 rounded-lg hover:bg-white/5" href="/vitals">Vitals</a>
+        <a class="block px-3 py-2 rounded-lg hover:bg-white/5" href="/meds">Med Reminders</a>
+        <a class="block px-3 py-2 rounded-lg hover:bg-white/5" href="/robot">Robot Manager</a>
+      </nav>
+
+      <div class="mt-8 pt-6 border-t border-[#1F2937]">
+        <form action="/logout" method="post">
+          <button class="w-full px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-left">
+            Sign out
+          </button>
+        </form>
+        <form action="/account/delete" method="post"
+              onsubmit="return confirm('Delete your account and ALL data? This cannot be undone.');">
+          <button class="w-full mt-2 px-3 py-2 rounded-lg bg-red-500/20 text-red-200 border border-red-500/30 text-left hover:bg-red-500/30">
+            Delete account
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <main class="flex-1">
+      <header class="flex items-center justify-between px-6 py-4 border-b border-[#1F2937] bg-black/10">
+        <div>
+          <div class="text-sm text-slate-400">English</div>
+          <div class="text-lg font-semibold">{{ header if header else "Dashboard" }}</div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="px-3 py-1 rounded-full bg-white/5 text-sm">
+            Status: <span class="text-[#22C55E]">Online</span>
+          </div>
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22C55E] opacity-90"></div>
+        </div>
+      </header>
+
+      <section class="px-6 py-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="space-y-2 mb-4">
+              {% for category, msg in messages %}
+                <div class="px-4 py-3 rounded-xl border border-[#1F2937] bg-[#111827]/60">
+                  <span class="text-sm text-slate-200">{{ msg }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+</body>
+</html>

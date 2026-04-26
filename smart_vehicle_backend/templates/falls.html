@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% set header = "Fall Events" %}
+
+{% block content %}
+<div class="p-4 rounded-2xl bg-[#111827] border border-[#1F2937]">
+  <div class="flex items-center justify-between">
+    <div class="font-semibold">Event List</div>
+    <a class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10" href="/falls">Refresh</a>
+  </div>
+
+  <div class="mt-4">
+    {% if events|length == 0 %}
+      <div class="text-slate-400 text-sm">No events.</div>
+    {% else %}
+      <div class="space-y-4">
+        {% for e in events %}
+          <div class="p-3 rounded-xl border border-[#1F2937] bg-white/5">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <div class="text-sm text-slate-200">
+                  {% if e.timestamp %}
+                    {{ e.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </div>
+
+                <div class="text-xs text-slate-400 mt-1 truncate">
+                  {{ e.reason }}
+                </div>
+
+                {% if e.video_name %}
+                  <div class="text-xs text-slate-500 mt-1 truncate">
+                    {{ e.video_name }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <form method="POST" action="/falls/delete/{{ e.id }}">
+                <button class="px-3 py-1 rounded-lg bg-red-500/20 text-red-200 border border-red-500/30 text-sm hover:bg-red-500/30">
+                  Delete
+                </button>
+              </form>
+            </div>
+
+            {% if e.video_name %}
+              <video class="mt-3 w-full rounded-xl" controls preload="metadata">
+                <source src="/falls/video/{{ e.id }}" type="video/mp4">
+              </video>
+            {% else %}
+              <div class="mt-3 text-xs text-slate-400">No video attached.</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

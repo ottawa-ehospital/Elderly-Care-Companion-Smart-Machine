@@ -1,0 +1,426 @@
+{% extends "layout.html" %}
+{% set header = "Robot Manager" %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+  <div class="p-4 rounded-2xl bg-[#111827] border border-[#1F2937]">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="font-semibold">Robot & Person Position</div>
+        <div class="text-xs text-slate-400 mt-1">
+          Person position comes from camera analysis. Robot position comes from controller state.
+        </div>
+      </div>
+      <div id="mapDebug" class="text-xs text-slate-400 text-right"></div>
+    </div>
+
+    <div class="mt-4 rounded-2xl border border-[#1F2937] bg-black/10 p-4">
+      <div id="map"
+           class="relative w-full overflow-hidden rounded-xl"
+           style="aspect-ratio: 16 / 10;">
+
+        <div class="absolute inset-0 opacity-40"
+             style="background-image: linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
+                                    linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px);
+                    background-size: 40px 40px;">
+        </div>
+
+        <div class="absolute inset-0 opacity-60"
+             style="background-image: linear-gradient(to right, rgba(255,255,255,0.10) 2px, transparent 2px),
+                                    linear-gradient(to bottom, rgba(255,255,255,0.10) 2px, transparent 2px);
+                    background-size: 200px 200px;">
+        </div>
+
+        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-white/20"></div>
+        <div class="absolute top-1/2 left-0 right-0 h-px bg-white/20"></div>
+
+        <div id="personDot"
+             class="absolute z-20 w-3 h-3 rounded-full bg-[#7C3AED] shadow ring-2 ring-white/20"
+             style="transform: translate(-50%, -50%);"></div>
+
+        <div id="robotDot"
+             class="absolute z-30 w-5 h-5 rounded-md bg-green-400 shadow ring-2 ring-white/30"
+             style="transform: translate(-50%, -50%);"></div>
+
+        <div id="personLabel"
+             class="absolute z-40 text-xs text-white/80"
+             style="transform: translate(8px, -18px);">Person</div>
+
+        <div id="robotLabel"
+             class="absolute z-40 text-xs text-white/80"
+             style="transform: translate(10px, -18px);">Robot</div>
+
+        <div class="absolute left-2 top-2 text-xs text-slate-400">forward ↑</div>
+        <div class="absolute left-2 bottom-2 text-xs text-slate-400">backward ↓</div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="font-semibold">Manual Control</div>
+      <div class="mt-3 grid grid-cols-2 gap-2">
+        <button id="btnForward" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Forward</button>
+        <button id="btnBackward" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Backward</button>
+        <button id="btnLeft" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Left</button>
+        <button id="btnRight" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Right</button>
+        <button id="btnTurnLeft" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Turn Left</button>
+        <button id="btnTurnRight" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Turn Right</button>
+      </div>
+
+      <div class="mt-2 grid grid-cols-2 gap-2">
+        <button id="btnStop" class="px-4 py-2 rounded-xl bg-red-500/20 text-red-200 border border-red-500/30 hover:bg-red-500/30">
+          Force Stop
+        </button>
+        <button id="btnResetRobot" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">
+          Reset Robot
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-5">
+      <div class="font-semibold">Gimbal Control</div>
+      <div class="mt-3 grid grid-cols-3 gap-2">
+        <div></div>
+        <button id="btnGimbalUp" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Up</button>
+        <div></div>
+
+        <button id="btnGimbalLeft" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Left</button>
+        <button id="btnGimbalCenter" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Center</button>
+        <button id="btnGimbalRight" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Right</button>
+
+        <div></div>
+        <button id="btnGimbalDown" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">Down</button>
+        <div></div>
+      </div>
+    </div>
+
+    <div class="mt-5">
+      <div class="font-semibold">Auto Follow</div>
+      <div class="mt-3 grid grid-cols-2 gap-2">
+        <button id="btnFollowStart" class="px-4 py-2 rounded-xl bg-[#7C3AED] hover:opacity-90">
+          Start Follow
+        </button>
+        <button id="btnFollowStop" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">
+          Stop Follow
+        </button>
+      </div>
+
+      <div class="mt-2 grid grid-cols-2 gap-2">
+        <button id="btnLockTarget" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">
+          Lock Target
+        </button>
+        <button id="btnResetTarget" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">
+          Reset Target
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-4 text-xs text-slate-400" id="robotStateText">—</div>
+  </div>
+
+  <div class="p-4 rounded-2xl bg-[#111827] border border-[#1F2937]">
+    <div class="flex items-center justify-between">
+      <div class="font-semibold">Robot Camera Feed</div>
+      <div id="pill" class="px-3 py-1 rounded-full bg-white/5 text-sm">OK</div>
+    </div>
+
+    <img id="stream" class="mt-3 w-full rounded-2xl border border-[#1F2937]" src="/snapshot" alt="stream"/>
+
+    <div id="reason" class="text-xs text-slate-400 mt-3">—</div>
+
+    <div class="mt-4 flex gap-2">
+      <button id="enableAudio" class="px-4 py-2 rounded-xl bg-[#7C3AED] hover:opacity-90">
+        Enable alarm audio
+      </button>
+      <button id="stopAlarm" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10">
+        Stop alarm
+      </button>
+      <a class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10" href="/falls">Fall events</a>
+    </div>
+
+    <audio id="alarm" src="/static/alarm.mp3" preload="auto"></audio>
+
+    <div class="mt-3 text-xs text-slate-400">
+      Note: Browsers require user interaction before playing audio.
+    </div>
+  </div>
+</div>
+
+<script>
+  const stream = document.getElementById("stream");
+  const pill = document.getElementById("pill");
+  const reason = document.getElementById("reason");
+  const mapDebug = document.getElementById("mapDebug");
+  const robotStateText = document.getElementById("robotStateText");
+
+  const alarm = document.getElementById("alarm");
+  const btnEnable = document.getElementById("enableAudio");
+  const btnStopAlarm = document.getElementById("stopAlarm");
+
+  const personDot = document.getElementById("personDot");
+  const robotDot = document.getElementById("robotDot");
+  const personLabel = document.getElementById("personLabel");
+  const robotLabel  = document.getElementById("robotLabel");
+  const mapEl = document.getElementById("map");
+
+  const btnForward = document.getElementById("btnForward");
+  const btnBackward = document.getElementById("btnBackward");
+  const btnLeft = document.getElementById("btnLeft");
+  const btnRight = document.getElementById("btnRight");
+  const btnTurnLeft = document.getElementById("btnTurnLeft");
+  const btnTurnRight = document.getElementById("btnTurnRight");
+  const btnStop = document.getElementById("btnStop");
+  const btnResetRobot = document.getElementById("btnResetRobot");
+  const btnFollowStart = document.getElementById("btnFollowStart");
+  const btnFollowStop = document.getElementById("btnFollowStop");
+  const btnLockTarget = document.getElementById("btnLockTarget");
+  const btnResetTarget = document.getElementById("btnResetTarget");
+
+  const btnGimbalUp = document.getElementById("btnGimbalUp");
+  const btnGimbalDown = document.getElementById("btnGimbalDown");
+  const btnGimbalLeft = document.getElementById("btnGimbalLeft");
+  const btnGimbalRight = document.getElementById("btnGimbalRight");
+  const btnGimbalCenter = document.getElementById("btnGimbalCenter");
+
+  let audioEnabled = false;
+  let lastEventId = 0;
+  let activeHoldCmd = null;
+
+  function mapToPixels(x, y) {
+    const rect = mapEl.getBoundingClientRect();
+    const px = (x + 1) / 2 * rect.width;
+    const py = (1 - (y + 1) / 2) * rect.height;
+    return { px, py };
+  }
+
+  function drawDots(personX, personY, robotX, robotY) {
+    const p = mapToPixels(personX, personY);
+    const r = mapToPixels(robotX, robotY);
+
+    personDot.style.left = p.px + "px";
+    personDot.style.top  = p.py + "px";
+    robotDot.style.left  = r.px + "px";
+    robotDot.style.top   = r.py + "px";
+
+    personLabel.style.left = p.px + "px";
+    personLabel.style.top  = p.py + "px";
+    robotLabel.style.left  = r.px + "px";
+    robotLabel.style.top   = r.py + "px";
+  }
+
+  async function postJson(url, payload = {}) {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return await r.json();
+  }
+
+  async function unlockAudio() {
+    try {
+      try {
+        const r = await fetch("/status", { cache: "no-store" });
+        const j = await r.json();
+        lastEventId = j.event_id ?? lastEventId;
+      } catch (e) {}
+
+      alarm.pause();
+      alarm.currentTime = 0;
+      alarm.muted = true;
+      alarm.volume = 0.0;
+      alarm.load();
+
+      await alarm.play();
+      alarm.pause();
+      alarm.currentTime = 0;
+
+      audioEnabled = true;
+      btnEnable.textContent = "Audio enabled";
+      btnEnable.className =
+        "px-4 py-2 rounded-xl bg-green-500/20 text-green-200 border border-green-500/30";
+    } catch (e) {
+      console.log("unlockAudio failed:", e);
+      btnEnable.textContent = "Click again to enable";
+    }
+  }
+
+  btnEnable.onclick = unlockAudio;
+  btnStopAlarm.onclick = () => {
+    alarm.pause();
+    alarm.currentTime = 0;
+  };
+
+  async function playAlarmOnce() {
+    if (!audioEnabled) return;
+    try {
+      alarm.pause();
+      alarm.currentTime = 0;
+      alarm.muted = false;
+      alarm.volume = 1.0;
+      await alarm.play();
+    } catch (e) {
+      console.log("alarm play failed:", e);
+    }
+  }
+
+  function refreshFrame() {
+    stream.src = "/snapshot?ts=" + Date.now();
+    setTimeout(refreshFrame, 120);
+  }
+  refreshFrame();
+
+  async function sendMove(cmd) {
+    await postJson("/api/robot/move", { cmd });
+  }
+
+  async function sendStop() {
+    await postJson("/api/robot/stop");
+  }
+
+  async function sendGimbalMove(direction) {
+    await postJson("/api/robot/gimbal/move", { direction });
+  }
+
+  async function sendGimbalCenter() {
+    await postJson("/api/robot/gimbal/center");
+  }
+
+  function bindHoldToMove(button, cmd) {
+    const start = async (e) => {
+      e.preventDefault();
+      activeHoldCmd = cmd;
+      await sendMove(cmd);
+    };
+
+    const end = async (e) => {
+      e.preventDefault();
+      if (activeHoldCmd === cmd) {
+        activeHoldCmd = null;
+        await sendStop();
+      }
+    };
+
+    button.addEventListener("mousedown", start);
+    button.addEventListener("mouseup", end);
+    button.addEventListener("mouseleave", end);
+
+    button.addEventListener("touchstart", start, { passive: false });
+    button.addEventListener("touchend", end, { passive: false });
+    button.addEventListener("touchcancel", end, { passive: false });
+  }
+
+  function bindHoldToGimbal(button, direction) {
+    let timer = null;
+
+    const start = async (e) => {
+      e.preventDefault();
+      await sendGimbalMove(direction);
+      timer = setInterval(() => {
+        sendGimbalMove(direction);
+      }, 120);
+    };
+
+    const end = (e) => {
+      e.preventDefault();
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+
+    button.addEventListener("mousedown", start);
+    button.addEventListener("mouseup", end);
+    button.addEventListener("mouseleave", end);
+
+    button.addEventListener("touchstart", start, { passive: false });
+    button.addEventListener("touchend", end, { passive: false });
+    button.addEventListener("touchcancel", end, { passive: false });
+  }
+
+  bindHoldToMove(btnForward, "forward");
+  bindHoldToMove(btnBackward, "backward");
+  bindHoldToMove(btnLeft, "left");
+  bindHoldToMove(btnRight, "right");
+  bindHoldToMove(btnTurnLeft, "turn_left");
+  bindHoldToMove(btnTurnRight, "turn_right");
+
+  bindHoldToGimbal(btnGimbalUp, "up");
+  bindHoldToGimbal(btnGimbalDown, "down");
+  bindHoldToGimbal(btnGimbalLeft, "left");
+  bindHoldToGimbal(btnGimbalRight, "right");
+
+  btnGimbalCenter.onclick = async () => {
+    await sendGimbalCenter();
+  };
+
+  btnStop.onclick = async () => {
+    activeHoldCmd = null;
+    await sendStop();
+  };
+
+  btnResetRobot.onclick = async () => { await postJson("/api/robot/reset"); };
+  btnFollowStart.onclick = async () => { await postJson("/api/robot/follow/start"); };
+  btnFollowStop.onclick = async () => { await postJson("/api/robot/follow/stop"); };
+  btnLockTarget.onclick = async () => { await postJson("/api/robot/target/lock"); };
+  btnResetTarget.onclick = async () => { await postJson("/api/robot/target/reset"); };
+
+  async function pollAll() {
+    try {
+      const camResp = await fetch("/status", { cache: "no-store" });
+      const cam = await camResp.json();
+
+      const msg = cam.msg ?? "—";
+      const posture = cam.posture ?? "Unknown";
+      const fps = cam.fps ?? 0;
+
+      reason.textContent =
+        `msg=${msg} | posture=${posture} | fps≈${fps} | event_id=${cam.event_id ?? 0}`;
+
+      if (cam.fall) {
+        pill.textContent = "FALL ALERT";
+        pill.className =
+          "px-3 py-1 rounded-full text-sm bg-red-500/20 text-red-200 border border-red-500/30";
+      } else {
+        pill.textContent = "OK";
+        pill.className =
+          "px-3 py-1 rounded-full bg-green-500/20 text-green-200 border border-green-500/30 text-sm";
+      }
+
+      const eid = cam.event_id ?? 0;
+      const confirmed = !!cam.fall_confirmed;
+      if (audioEnabled && confirmed && eid && eid !== lastEventId) {
+        lastEventId = eid;
+        playAlarmOnce();
+      }
+
+      const robotResp = await fetch("/api/robot/status", { cache: "no-store" });
+      const rs = await robotResp.json();
+
+      drawDots(
+        rs.person_x ?? 0.0,
+        rs.person_y ?? 0.0,
+        rs.robot_x ?? 0.0,
+        rs.robot_y ?? 0.35
+      );
+
+      mapDebug.textContent =
+        `person(x=${(rs.person_x ?? 0).toFixed(2)}, y=${(rs.person_y ?? 0).toFixed(2)}) | ` +
+        `robot(x=${(rs.robot_x ?? 0).toFixed(2)}, y=${(rs.robot_y ?? 0.35).toFixed(2)})`;
+
+      robotStateText.textContent =
+        `mode=${rs.mode} | follow=${rs.follow_enabled} | target_locked=${rs.target_locked} | ` +
+        `visible=${rs.person_visible} | obstacle=${rs.obstacle} | stuck=${rs.stuck} | ` +
+        `cmd=${rs.last_cmd} | ${rs.last_msg} | pan=${rs.pan_pulse} | tilt=${rs.tilt_pulse}`;
+
+    } catch (e) {
+      console.log(e);
+    }
+
+    setTimeout(pollAll, 250);
+  }
+
+  drawDots(0, 0, 0, 0.35);
+  pollAll();
+</script>
+{% endblock %}

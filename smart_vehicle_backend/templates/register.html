@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Register - SafeFall</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body class="min-h-screen bg-[#0B1020] text-slate-100 flex items-center justify-center">
+  <div class="w-full max-w-md p-6 rounded-2xl bg-[#111827] border border-[#1F2937]">
+    <div class="text-2xl font-semibold mb-1">Create account</div>
+    <div class="text-sm text-slate-400 mb-6">Start tracking vitals & fall events.</div>
+
+    <form method="post" class="space-y-4">
+      <div>
+        <label class="text-sm text-slate-300">Email</label>
+        <input name="email" class="mt-1 w-full px-3 py-2 rounded-xl bg-black/20 border border-[#1F2937]" />
+      </div>
+      <div>
+        <label class="text-sm text-slate-300">Password</label>
+        <input name="password" type="password" class="mt-1 w-full px-3 py-2 rounded-xl bg-black/20 border border-[#1F2937]" />
+      </div>
+
+      <button class="w-full py-2 rounded-xl bg-[#22C55E] hover:opacity-90 text-black font-semibold">Register</button>
+    </form>
+
+    <div class="text-sm text-slate-400 mt-4">
+      Already have an account? <a class="text-[#7C3AED]" href="/login">Sign in</a>
+    </div>
+  </div>
+</body>
+</html>

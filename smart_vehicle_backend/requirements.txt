@@ -1,0 +1,9 @@
+flask
+flask-login
+flask-sqlalchemy
+flask_cors
+requests
+opencv-python
+numpy
+python-dotenv
+mediapipe
